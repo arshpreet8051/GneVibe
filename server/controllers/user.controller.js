@@ -5,6 +5,7 @@ import userSchema from "../validator/registerSchema.js";
 import createHttpError from "http-errors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import loginSchema from "../validator/loginSchema.js";
 
 const userController = {
   async register(req, res, next) {
@@ -76,6 +77,38 @@ const userController = {
       res.send("Email verified successfully. You can now log in.");
     } catch (error) {
       res.status(500).send("Server error");
+    }
+  },
+  async login(req, res, next) {
+    const { error } = loginSchema.validate(req.body);
+    if (error) {
+      return next(createHttpError(400, error.message));
+    }
+
+    const { email, password } = req.body;
+
+    try {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return next(createHttpError(400, "Invalid email or password"));
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return next(createHttpError(400, "Invalid email or password"));
+      }
+
+      if (!user.isVerified) {
+        return next(createHttpError(400, "Please verify your email first"));
+      }
+
+      const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
+        expiresIn: "10h",
+      });
+
+      res.json({ message: "Login successful", token });
+    } catch (err) {
+      return next(createHttpError(500, err.message));
     }
   },
 };
