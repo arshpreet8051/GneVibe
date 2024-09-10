@@ -6,6 +6,9 @@ import connectDB from "./config/db.js";
 
 const app = express();
 
+// parsing req.body
+app.use(express.json());
+
 // user route with prefix /user
 app.use("/api/user", userRouter);
 

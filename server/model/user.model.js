@@ -20,7 +20,7 @@ const userSchema = new Schema(
       required: true,
     },
     crn: {
-      type: Number,
+      type: String,
       required: true,
     },
     urn: {
@@ -30,6 +30,9 @@ const userSchema = new Schema(
     yearOfAdmission: {
       type: Number,
       required: true,
+    },
+    verificationToken: {
+      type: String,
     },
     isVerified: {
       type: Boolean,
