@@ -36,7 +36,6 @@ const userController = {
       // User doesnot exist
       const hashedPassword = await bcrypt.hash(password, 10);
       const emailToken = jwt.sign({ email: email }, JWT_SECRET);
-      console.log(emailToken);
       const newUser = new User({
         name,
         email,
@@ -56,7 +55,6 @@ const userController = {
         message: "Successful registeration. Please verify your email address",
       });
     } catch (err) {
-      console.log(err);
       return next(500, "Internal server error");
     }
   },

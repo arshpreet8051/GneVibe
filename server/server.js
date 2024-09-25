@@ -3,9 +3,12 @@ import { PORT } from "./config/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import userRouter from "./routes/user.route.js";
 import connectDB from "./config/db.js";
+import cors from "cors";
 
 const app = express();
 
+// cors
+app.use(cors());
 // parsing req.body
 app.use(express.json());
 
