@@ -12,8 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReusableAlert } from "@/components/Utils/ReusableAlert"; // Import the reusable alert
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState({
@@ -23,6 +28,7 @@ export function LoginForm() {
   }); // Store alert message
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setIsLoading(true);
     e.preventDefault();
     setMessage({ type: "", title: "", description: "" }); // Clear any previous messages
 
@@ -47,6 +53,9 @@ export function LoginForm() {
           description: "You have successfully logged in!",
         });
         console.log("Login successful", data);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 500);
       } else {
         const errorData = await res.json();
         // On error, set error alert
@@ -62,6 +71,8 @@ export function LoginForm() {
         title: "An Error Occurred",
         description: "An error occurred during login. Please try again later.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,6 +98,9 @@ export function LoginForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+                <span className="text-gray-500 text-sm mt-1 italic">
+                  Please use college email id ending with @gndec.ac.in
+                </span>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
@@ -98,9 +112,17 @@ export function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <span className="text-gray-500 text-sm mt-1 italic">
+                  Must include 1 uppercase, 1 lowercase, 1 special character,
+                  and be at least 6 characters long.
+                </span>
               </div>
               <Button type="submit" className="w-full">
-                Login
+                {isLoading ? (
+                  <Loader2 className="animate-spin flex justify-center" />
+                ) : (
+                  <>Login</>
+                )}
               </Button>
             </div>
           </form>

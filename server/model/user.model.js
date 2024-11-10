@@ -15,21 +15,41 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    branch: {
-      type: String,
-      required: true,
+    acadamics: {
+      branch: {
+        type: String,
+        required: true,
+      },
+
+      urn: {
+        type: String,
+        required: true,
+      },
+      yearOfAdmission: {
+        type: Number,
+        required: true,
+      },
     },
-    crn: {
+    image: {
       type: String,
-      required: true,
+      default: "https://placehold.co/400"
     },
-    urn: {
+    connections: [
+       {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
+    pending_request: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
+    role: {
       type: String,
-      required: true,
-    },
-    yearOfAdmission: {
-      type: Number,
-      required: true,
+      enum: ['student', 'mentor'],
+      default: 'student'
     },
     verificationToken: {
       type: String,

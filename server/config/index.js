@@ -7,4 +7,7 @@ export const {
   EMAIL_PASS,
   BACKEND_DOMAIN,
   JWT_SECRET,
+  CLOUD_API_KEY,
+  CLOUD_API_SECRET,
+  CLOUD_NAME,
 } = process.env;

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"; // shadcn Select component
 import { ReusableAlert } from "@/components/Utils/ReusableAlert"; // Import the alert component
+import { Loader2 } from "lucide-react";
 
 // Define a mapping for branch names
 const branchMap: Record<string, string> = {
@@ -32,6 +33,7 @@ const branchMap: Record<string, string> = {
 };
 
 export function RegisterForm() {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -58,6 +60,7 @@ export function RegisterForm() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setIsLoading(true);
     e.preventDefault();
     const branch = branchMap[formData.branch as keyof typeof branchMap]; // Type assertion
     const dataToSend = {
@@ -79,7 +82,7 @@ export function RegisterForm() {
 
       if (res.ok) {
         const responseData = await res.json();
-        console.log(responseData)
+        console.log(responseData);
         setAlert({
           type: "success",
           title: "Registration Successful!",
@@ -101,6 +104,8 @@ export function RegisterForm() {
         title: "Error",
         description: "An error occurred during registration.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -225,8 +230,12 @@ export function RegisterForm() {
 
             {/* Submit button */}
             <div>
-              <Button type="submit" className="w-full">
-                Create an account
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="animate-spin flex justify-center" />
+                ) : (
+                  <>Create an account</>
+                )}
               </Button>
             </div>
           </form>
