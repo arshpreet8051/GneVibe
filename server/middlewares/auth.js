@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/index.js";
 const authMiddleware = async (req, res, next) => {
+  
   const { authorization } = req.headers;
 
   if (!authorization) {

@@ -23,13 +23,13 @@ import { Loader2 } from "lucide-react";
 
 // Define a mapping for branch names
 const branchMap: Record<string, string> = {
-  IT: "Information Technology",
-  CSE: "Computer Science and Engineering",
-  ECE: "Electronics and Communication Engineering",
-  EE: "Electrical Engineering",
-  ME: "Mechanical Engineering",
-  CE: "Civil Engineering",
-  PE: "Production Engineering",
+  IT: "IT",
+  CSE: "CSE",
+  ECE: "ECE",
+  EE: "EE",
+  ME: "ME",
+  CE: "CE",
+  PE: "PE",
 };
 
 export function RegisterForm() {
@@ -38,10 +38,10 @@ export function RegisterForm() {
     name: "",
     email: "",
     password: "",
-    crn: "",
     urn: "",
     yearOfAdmission: "",
     branch: "",
+    crn: "",
   });
   const [alert, setAlert] = useState<{
     type: "success" | "error";
@@ -62,10 +62,17 @@ export function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     setIsLoading(true);
     e.preventDefault();
+
     const branch = branchMap[formData.branch as keyof typeof branchMap]; // Type assertion
     const dataToSend = {
-      ...formData,
-      branch, // Use the mapped value for branch
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      acadamics: {
+        branch: branch, // Use the mapped value for branch
+        urn: formData.urn,
+        yearOfAdmission: formData.yearOfAdmission,
+      },
     };
 
     try {
@@ -191,13 +198,14 @@ export function RegisterForm() {
             {/* CRN and URN */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="crn">CRN</Label>
+                <Label htmlFor="yearOfAdmission">Year of Admission</Label>
                 <Input
-                  id="crn"
-                  name="crn"
-                  placeholder="2121116"
+                  id="yearOfAdmission"
+                  name="yearOfAdmission"
+                  type="number"
+                  placeholder="2021"
                   required
-                  value={formData.crn}
+                  value={formData.yearOfAdmission}
                   onChange={handleChange}
                 />
               </div>
@@ -212,20 +220,6 @@ export function RegisterForm() {
                   onChange={handleChange}
                 />
               </div>
-            </div>
-
-            {/* Year of Admission */}
-            <div>
-              <Label htmlFor="yearOfAdmission">Year of Admission</Label>
-              <Input
-                id="yearOfAdmission"
-                name="yearOfAdmission"
-                type="number"
-                placeholder="2021"
-                required
-                value={formData.yearOfAdmission}
-                onChange={handleChange}
-              />
             </div>
 
             {/* Submit button */}

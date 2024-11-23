@@ -19,7 +19,7 @@ userRouter.get("/me", authMiddleware, userController.me);
 
 // Route for updating a user's details (including image upload)
 userRouter.patch(
-  "/update/:id",
+  "/update",
   [
     upload.fields([
       {
@@ -54,7 +54,15 @@ userRouter.post(
   userController.rejectConnectionRequest
 );
 
+// Routes for fetching all the connections of user
+userRouter.get('/connections', authMiddleware, userController.getConnectionsList)
+// Routes for fetching all the pending connections of user
+userRouter.get('/connections/pending', authMiddleware, userController.getPendingConnectionsList)
+
 // Route for fetching the list of users with optional filters and pagination
 userRouter.get("/users", authMiddleware, userController.getUsers);
+
+// Route for fetching the single user
+userRouter.get('/user/:userId', authMiddleware, userController.getSingleUser);
 
 export default userRouter;

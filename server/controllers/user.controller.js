@@ -72,7 +72,7 @@ const userController = {
       user.verificationToken = undefined; // Clear the token after verification
       await user.save();
 
-      res.status(200).json({ message: "Verified Successfully!! 👍" });
+      res.redirect("http://localhost:3000/login");
     } catch (error) {
       res.status(500).send("Server error");
     }
@@ -115,9 +115,7 @@ const userController = {
     try {
       const user = await User.findOne({
         $or: [{ email: email }, { _id: id }],
-      }).select(
-        "-__v -password -connections -pending_request -isVerified -createdAt -updatedAt"
-      );
+      }).select("-__v -password   -isVerified -createdAt -updatedAt ");
       if (!user) {
         return next(customErrorHandler.notFound("No user found!"));
       }
@@ -133,7 +131,7 @@ const userController = {
         return res.status(400).json({ message: error.details[0].message });
       }
 
-      const userId = req.params.id;
+      const userId = req.user.id;
       const updateData = { ...req.body };
       const user = await User.findById(userId);
       if (!user) {
@@ -175,7 +173,6 @@ const userController = {
 
       res.status(200).json({
         message: "User updated successfully!",
-        user: updatedUser,
       });
     } catch (err) {
       res.status(500).json({ message: "Server error", error: err.message });
@@ -224,7 +221,41 @@ const userController = {
       return next(createHttpError(500, err.message));
     }
   },
+  async getPendingConnectionsList(req, res, next) {
+    const userId = req.user.id;
 
+    try {
+      // Fetch the user with their pending connection requests populated
+      const user = await User.findById(userId).populate({
+        path: "pending_request", // Populate the pending_request field
+        select: "name email image acadamics role", // Select relevant fields
+      });
+
+      if (!user) {
+        return next(createHttpError(404, "User not found"));
+      }
+
+      // Extract the pending connections (requests from other users)
+      const formattedPendingConnections = user.pending_request.map(
+        (connection) => ({
+          id: connection._id,
+          name: connection.name,
+          email: connection.email,
+          image: connection.image,
+          acadamics: connection.acadamics, // Include academic details if needed
+          role: connection.role, // Include role details (student/mentor)
+        })
+      );
+
+      res.status(200).json({
+        pendingConnections: formattedPendingConnections,
+        totalPendingConnections: formattedPendingConnections.length,
+      });
+    } catch (err) {
+      console.error(err.message);
+      next(createHttpError(500, "Failed to fetch pending connections"));
+    }
+  },
   // Accept connection request (receiver accepts the request)
   async acceptConnectionRequest(req, res, next) {
     const { userId } = req.params; // Sender's user ID
@@ -252,17 +283,24 @@ const userController = {
         return next(createHttpError(404, "Receiver not found."));
       }
 
-      // Check if the sender's ID exists in the receiver's pending request
+      // Check if the sender's ID exists in the receiver's pending request list
       const requestIndex = receiver.pending_request.indexOf(userId);
       if (requestIndex === -1) {
         return next(createHttpError(400, "No connection request found."));
       }
+      // Check if the receiver Id exist in the sending pending request list
+      const requestReceiverIndex = sender.pending_request.indexOf(receiverId);
+      if (requestIndex !== -1) {
+        sender.pending_request.splice(requestReceiverIndex, 1);
+      }
 
-      // Remove the sender from pending requests and add to connections
+      // Remove the sender from the receiver's pending request list
       receiver.pending_request.splice(requestIndex, 1);
+
+      // Add the sender to the receiver's connections list
       receiver.connections.push(userId);
 
-      // Add receiver to sender's connections as well
+      // Add the receiver to the sender's connections list
       sender.connections.push(receiverId);
 
       // Save both users' updated data
@@ -273,10 +311,10 @@ const userController = {
         message: "Connection request accepted successfully!",
       });
     } catch (err) {
+      console.error(err.message);
       return next(createHttpError(500, err.message));
     }
   },
-
   // Reject connection request (receiver rejects the request)
   async rejectConnectionRequest(req, res, next) {
     const { userId } = req.params; // Sender's user ID
@@ -313,6 +351,37 @@ const userController = {
       });
     } catch (err) {
       return next(createHttpError(500, err.message));
+    }
+  },
+  async getConnectionsList(req, res, next) {
+    const userId = req.user.id;
+
+    try {
+      // Fetch the user with their connections populated
+      const user = await User.findById(userId).populate({
+        path: "connections", // Assuming connections field stores references to other users
+        select: "name email image", // Select necessary fields
+      });
+
+      if (!user) {
+        return next(createHttpError(404, "User not found"));
+      }
+
+      // Extract the connections from the user document
+      const formattedConnections = user.connections.map((connection) => ({
+        id: connection._id,
+        name: connection.name,
+        email: connection.email,
+        image: connection.image,
+      }));
+
+      res.status(200).json({
+        connections: formattedConnections,
+        totalConnections: formattedConnections.length,
+      });
+    } catch (err) {
+      console.error(err.message);
+      next(createHttpError(500, "Failed to fetch connections"));
     }
   },
   async getUsers(req, res, next) {
@@ -378,6 +447,29 @@ const userController = {
       });
     } catch (err) {
       return next(createHttpError(500, err.message));
+    }
+  },
+  async getSingleUser(req, res, next) {
+    try {
+      // Extract user ID from the URL parameters and logged-in user's ID
+      const { userId } = req.params;
+      const loggedInUserId = req.user.id;
+
+      // Validate if the requested userId is in a valid format (optional, if using MongoDB)
+      if (!userId) {
+        return next(createHttpError(400, "User ID is required."));
+      }
+
+      // Fetch the user from the database
+      const user = await User.findById(userId);
+      // Check if the user exists
+      if (!user) {
+        return next(createHttpError(404, "User not found."));
+      }
+      res.status(200).json({ user });
+    } catch (error) {
+      console.log(error.message);
+      return next(createHttpError(500, "Internal Server Error"));
     }
   },
 };
